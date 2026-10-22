@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Perfil {
+  id_perfil       Int    @id @default(autoincrement())
+  tipo_utilizador String @unique 
+
+  funcionarios FuncionarioMunicipal[]
+}
+
+model Departamento {
+  id_departamento   Int    @id @default(autoincrement())
+  nome_departamento String @unique
+
+  funcionarios     FuncionarioMunicipal[]
+  categorias       Categoria[]
+  problemas        Problema[]
+  historicoEstados HistoricoEstados[]
+
+}
+
+model EstadoConta {
+  id_estado_conta   Int    @id @default(autoincrement())
+  tipo_estado_conta String @unique 
+
+  cidadaos              Cidadao[]
+  funcionarios          FuncionarioMunicipal[]
+  historicoCidadaos     HistoricoEstadoCidadao[]
+  historicoFuncionarios HistoricoEstadoFuncionario[]
+
+}
+
+model Prioridade {
+  id_prioridade   Int    @id @default(autoincrement())
+  tipo_prioridade String @unique 
+
+  problemas Problema[]
+
+}
+
+model Tipo {
+  id_tipo   Int    @id @default(autoincrement())
+  nome_tipo String @unique
+
+  estados Estado[]
+
+}
+
+model Estado {
+  id_estado   Int    @id @default(autoincrement())
+  id_tipo     Int
+  nome_estado String @unique
+
+  tipo             Tipo               @relation(fields: [id_tipo], references: [id_tipo])
+  historicoEstados HistoricoEstados[]
+
+}
+
+model Categoria {
+  id_categoria    Int    @id @default(autoincrement())
+  id_departamento Int
+  tipo_categoria  String @unique 
+
+  departamento Departamento @relation(fields: [id_departamento], references: [id_departamento])
+  problemas    Problema[]
+
+}
+
+model Cidadao {
+  id_cidadao      Int      @id @default(autoincrement())
+  id_estado_conta Int
+  nome            String
+  email           String   @unique
+  password        String 
+  data_registo    DateTime @default(now())
+
+  estadoConta EstadoConta            @relation(fields: [id_estado_conta], references: [id_estado_conta])
+  problemas   Problema[]
+  historico   HistoricoEstadoCidadao[]
+
+}
+
+model FuncionarioMunicipal {
+  id_funcionarioMunicipal Int      @id @default(autoincrement())
+  id_departamento         Int?
+  id_perfil               Int
+  id_estado_conta         Int
+  nome                    String
+  email                   String   @unique
+  password                String 
+  data_registo            DateTime @default(now())
+
+  departamento Departamento? @relation(fields: [id_departamento], references: [id_departamento])
+  perfil       Perfil        @relation(fields: [id_perfil], references: [id_perfil])
+  estadoConta  EstadoConta   @relation(fields: [id_estado_conta], references: [id_estado_conta])
+
+  historicoEstados         HistoricoEstados[]
+  historicoComoFuncionario HistoricoEstadoFuncionario[] @relation("FuncionarioHistorico")
+
+  historicoFuncionarioComoAdmin HistoricoEstadoFuncionario[] @relation("AdminHistoricoFuncionario")
+  historicoCidadaoComoAdmin     HistoricoEstadoCidadao[]      @relation("AdminHistoricoCidadao")
+
+}
+
+model HistoricoEstadoCidadao {
+  id_historico_estado_cidadao Int      @id @default(autoincrement())
+  id_cidadao                  Int
+  id_estado_conta             Int
+  id_admin                    Int?
+  data_hora                   DateTime @default(now())
+
+  cidadao     Cidadao               @relation(fields: [id_cidadao], references: [id_cidadao])
+  estadoConta EstadoConta           @relation(fields: [id_estado_conta], references: [id_estado_conta])
+  admin       FuncionarioMunicipal? @relation("AdminHistoricoCidadao", fields: [id_admin], references: [id_funcionarioMunicipal])
+
+}
+
+model HistoricoEstadoFuncionario {
+  id_historico_estado_funcionario Int      @id @default(autoincrement())
+  id_funcionarioMunicipal         Int
+  id_estado_conta                 Int
+  id_admin                        Int?
+  data_hora                       DateTime @default(now())
+
+  funcionario FuncionarioMunicipal  @relation("FuncionarioHistorico", fields: [id_funcionarioMunicipal], references: [id_funcionarioMunicipal])
+  estadoConta EstadoConta           @relation(fields: [id_estado_conta], references: [id_estado_conta])
+  admin       FuncionarioMunicipal? @relation("AdminHistoricoFuncionario", fields: [id_admin], references: [id_funcionarioMunicipal])
+
+}
+
+model Problema {
+  id_problema     Int       @id @default(autoincrement())
+  id_prioridade   Int? 
+  id_cidadao      Int
+  id_categoria    Int
+  id_departamento Int? 
+  descricao       String
+  gravidade       Boolean   @default(false)
+  data_criacao    DateTime  @default(now())
+  latitude        Float?
+  longitude       Float?
+
+  prioridade   Prioridade?   @relation(fields: [id_prioridade], references: [id_prioridade])
+  cidadao      Cidadao       @relation(fields: [id_cidadao], references: [id_cidadao])
+  categoria    Categoria     @relation(fields: [id_categoria], references: [id_categoria])
+  departamento Departamento? @relation(fields: [id_departamento], references: [id_departamento])
+
+  fotos            Foto[]
+  historicoEstados HistoricoEstados[]
+
+}
+
+model Foto {
+  id_foto     Int    @id @default(autoincrement())
+  id_problema Int
+  foto        String
+
+  problema Problema @relation(fields: [id_problema], references: [id_problema], onDelete: Cascade)
+
+
+}
+
+model HistoricoEstados {
+  id_historicoEstados     Int      @id @default(autoincrement())
+  id_problema             Int
+  id_estado               Int
+  id_funcionarioMunicipal Int? 
+  id_departamento         Int?
+  data_hora               DateTime @default(now())
+
+  problema     Problema              @relation(fields: [id_problema], references: [id_problema], onDelete: Cascade)
+  estado       Estado                @relation(fields: [id_estado], references: [id_estado])
+  funcionario  FuncionarioMunicipal? @relation(fields: [id_funcionarioMunicipal], references: [id_funcionarioMunicipal])
+  departamento Departamento?         @relation(fields: [id_departamento], references: [id_departamento])
+
+}
