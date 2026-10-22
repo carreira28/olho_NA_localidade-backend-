@@ -20,7 +20,7 @@ const adapter = new PrismaPg({
 const prisma = new PrismaClient({ adapter });
 
 app.get("/", async (req, res) => {
-  const estado = await prisma.estado.findMany();
+  const estado = await prisma.EstadoConta.findMany();
   res.status(200).json(estado);
 });
 
