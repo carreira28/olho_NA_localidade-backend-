@@ -1,28 +1,29 @@
 import jwt from "jsonwebtoken";
 
 const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader & authHeader.split(" ")[1];
+  const token = req.headers["authorization"]?.split(" ")[1];
+
   if (!token) {
     return res.status(401).json({ message: "Token não fornecido" });
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
-      return res.status(403).json({ message: "Token inválido" });
+      return res.status(401).json({ message: "Token inválido ou expirado" });
     }
     req.user = user;
     next();
   });
 };
-export const apenasCidadao = (req, res, next) => {
+
+const apenasCidadao = (req, res, next) => {
   if (req.user?.tipo !== "cidadao") {
     return res.status(403).json({ message: "Acesso reservado a cidadãos" });
   }
   next();
 };
 
-export const requirePerfil = (...perfis) => {
+const requirePerfil = (...perfis) => {
   const permitidos = perfis.map((p) => p.toLowerCase());
 
   return (req, res, next) => {
@@ -35,4 +36,4 @@ export const requirePerfil = (...perfis) => {
   };
 };
 
-module.exports = authenticateToken;
+export { authenticateToken, apenasCidadao, requirePerfil };

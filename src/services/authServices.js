@@ -31,14 +31,11 @@ const emailEmUso = async (email) => {
   return Boolean(cidadao || funcionario);
 };
 
-export const signup = async (data) => {
-  const { nome, password } = data ?? {};
-  const email = data?.email?.trim().toLowerCase();
+const signup = async (data) => {
+  const { nome, email, password } = data ?? {};
 
-  if (!nome || !email || typeof password !== "string" || password.length < 8) {
-    const error = new Error(
-      "Indica nome, email e password (mín. 8 caracteres)",
-    );
+  if (!email || !password || !nome) {
+    const error = new Error("Indica o nome, email e password");
     error.status = 400;
     throw error;
   }
@@ -64,3 +61,132 @@ export const signup = async (data) => {
 
   return { id: cidadao.id_cidadao, nome: cidadao.nome, email: cidadao.email };
 };
+
+//!verificar
+const criarFuncionario = async (data, idAdmin) => {
+  const { nome, password, id_perfil, id_departamento } = data ?? {};
+
+  const perfil = await prisma.perfil.findUnique({ where: { id_perfil } });
+  if (!perfil) {
+    throw criarErro("Perfil inválido", 400);
+  }
+
+  const eAdmin = perfil.tipo_utilizador.toUpperCase() === "ADMINISTRADOR";
+
+  if (!eAdmin) {
+    if (!Number.isInteger(id_departamento)) {
+      throw criarErro("O funcionário tem de ter um departamento", 400);
+    }
+    const departamento = await prisma.departamento.findUnique({
+      where: { id_departamento },
+    });
+    if (!departamento) {
+      throw criarErro("Departamento inválido", 400);
+    }
+  }
+  //!colocar os outros assim
+  if (await emailEmUso(email)) {
+    const error = new Error("Email já registado");
+    error.status = 409;
+    throw error;
+  }
+
+  const ativo = await obterEstadoAtivo();
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const funcionario = await prisma.funcionarioMunicipal.create({
+    data: {
+      nome: nome,
+      email,
+      password: hashedPassword,
+      id_perfil,
+      id_departamento: eAdmin ? null : id_departamento,
+      id_estado_conta: ativo.id_estado_conta,
+      historicoComoFuncionario: {
+        create: { id_estado_conta: ativo.id_estado_conta, id_admin: idAdmin },
+      },
+    },
+  });
+
+  return {
+    id: funcionario.id_funcionarioMunicipal,
+    nome: funcionario.nome,
+    email: funcionario.email,
+  };
+};
+//!ate aqui
+
+const signin = async (data) => {
+  const { email, password } = data ?? {};
+
+  if (!email) {
+    const error = new Error("Indica o email");
+    error.status = 400;
+    throw error;
+  }
+
+  const cidadao = await prisma.cidadao.findUnique({
+    where: { email },
+    include: { estadoConta: true },
+  });
+
+  const funcionario = cidadao
+    ? null
+    : await prisma.funcionarioMunicipal.findUnique({
+        where: { email },
+        include: { estadoConta: true, perfil: true },
+      });
+
+  const conta = cidadao ?? funcionario;
+
+  if (!conta) {
+    const error = new Error("Email ou password incorretos");
+    error.status = 401;
+    throw error;
+  }
+
+  const validarPassword = await bcrypt.compare(password, conta.password);
+
+  if (!validarPassword) {
+    const error = new Error("Email ou password incorretos");
+    error.status = 401;
+    throw error;
+  }
+
+  if (conta.estadoConta.tipo_estado_conta !== "ATIVO") {
+    const error = new Error("A conta não está ativa");
+    error.status = 403;
+    throw error;
+  }
+
+  const utilizador = cidadao
+    ? {
+        id: cidadao.id_cidadao,
+        nome: cidadao.nome,
+        email: cidadao.email,
+        tipo: "cidadao",
+      }
+    : {
+        id: funcionario.id_funcionarioMunicipal,
+        nome: funcionario.nome,
+        email: funcionario.email,
+        tipo: "funcionario",
+        perfil: funcionario.perfil.tipo_utilizador,
+        departamento: funcionario.id_departamento,
+      };
+
+  const token = jwt.sign(
+    {
+      id: utilizador.id,
+      tipo: utilizador.tipo,
+      perfil: utilizador.perfil,
+      departamento: utilizador.departamento,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" },
+  );
+
+  return { token, utilizador };
+};
+
+export { signin, signup };
