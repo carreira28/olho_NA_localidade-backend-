@@ -1,17 +1,16 @@
-import prisma from "../prisma/client";
+import prisma from "../prisma/client.js";
 
-const createProblem = async (data, file) => {
-  const {
-    descricao,
-    gravidade,
-    latitude,
-    longitude,
-    id_categoria,
-    id_cidadao,
-  } = data ?? {};
+const createProblem = async (data, file, idCidadao) => {
+  const { descricao } = data ?? {};
+  const id_categoria = Number(data?.id_categoria);
+  const gravidade = data?.gravidade === true || data?.gravidade === "true";
 
-  if (!descricao || !gravidade || !id_categoria) {
-    const error = new Error("");
+  const semValor = (v) => v === undefined || v === null || v === "";
+  const latitude = semValor(data?.latitude) ? null : Number(data.latitude);
+  const longitude = semValor(data?.longitude) ? null : Number(data.longitude);
+
+  if (!descricao || !id_categoria) {
+    const error = new Error("Indica a descrição, gravidade e a categoria");
     error.status = 400;
     throw error;
   }
@@ -21,4 +20,43 @@ const createProblem = async (data, file) => {
     error.status = 400;
     throw error;
   }
+
+  const categoria = await prisma.categoria.findUnique({
+    where: { id_categoria },
+  });
+
+  if (!categoria) {
+    const error = new Error("Catgoria invalida");
+    error.status = 400;
+    throw error;
+  }
+
+  const estado = await prisma.estado.findUnique({
+    where: { nome_estado: "PENDENTE" },
+  });
+
+  if (!estado) {
+    const error = new Error("Estado invalido");
+    error.status = 400;
+    throw error;
+  }
+
+  const fotos = (file ?? []).map((f) => ({ foto: f.path }));
+
+  return prisma.problema.create({
+    data: {
+      descricao: descricao.trim(),
+      gravidade,
+      latitude,
+      longitude,
+      id_cidadao: idCidadao,
+      id_categoria,
+      id_departamento: categoria.id_departamento,
+      fotos: { create: fotos },
+      historicoEstados: { create: { id_estado: estado.id_estado } },
+    },
+    include: { fotos: true, categoria: true },
+  });
 };
+
+export { createProblem };
