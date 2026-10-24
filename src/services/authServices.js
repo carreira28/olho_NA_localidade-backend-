@@ -62,29 +62,35 @@ const signup = async (data) => {
   return { id: cidadao.id_cidadao, nome: cidadao.nome, email: cidadao.email };
 };
 
-//!verificar
 const criarFuncionario = async (data, idAdmin) => {
-  const { nome, password, id_perfil, id_departamento } = data ?? {};
+  const { nome, email, password, id_departamento } = data ?? {};
 
-  const perfil = await prisma.perfil.findUnique({ where: { id_perfil } });
+  if (!email || !password || !nome || !id_departamento) {
+    const error = new Error("Indica o nome, email, password e o departamento");
+    error.status = 400;
+    throw error;
+  }
+
+  const departamento = await prisma.departamento.findUnique({
+    where: { id_departamento },
+  });
+
+  if (!departamento) {
+    const error = new Error("Departamento inválido");
+    error.status = 400;
+    throw error;
+  }
+
+  const perfil = await prisma.perfil.findUnique({
+    where: { tipo_utilizador: "FUNCIONARIO MUNICIPAL" },
+  });
+
   if (!perfil) {
-    throw criarErro("Perfil inválido", 400);
+    const error = new Error("Perfil não existe.");
+    error.status = 500;
+    throw error;
   }
 
-  const eAdmin = perfil.tipo_utilizador.toUpperCase() === "ADMINISTRADOR";
-
-  if (!eAdmin) {
-    if (!Number.isInteger(id_departamento)) {
-      throw criarErro("O funcionário tem de ter um departamento", 400);
-    }
-    const departamento = await prisma.departamento.findUnique({
-      where: { id_departamento },
-    });
-    if (!departamento) {
-      throw criarErro("Departamento inválido", 400);
-    }
-  }
-  //!colocar os outros assim
   if (await emailEmUso(email)) {
     const error = new Error("Email já registado");
     error.status = 409;
@@ -99,8 +105,8 @@ const criarFuncionario = async (data, idAdmin) => {
       nome: nome,
       email,
       password: hashedPassword,
-      id_perfil,
-      id_departamento: eAdmin ? null : id_departamento,
+      id_perfil: perfil.id_perfil,
+      id_departamento,
       id_estado_conta: ativo.id_estado_conta,
       historicoComoFuncionario: {
         create: { id_estado_conta: ativo.id_estado_conta, id_admin: idAdmin },
@@ -114,7 +120,6 @@ const criarFuncionario = async (data, idAdmin) => {
     email: funcionario.email,
   };
 };
-//!ate aqui
 
 const signin = async (data) => {
   const { email, password } = data ?? {};
@@ -189,4 +194,4 @@ const signin = async (data) => {
   return { token, utilizador };
 };
 
-export { signin, signup };
+export { signin, signup, criarFuncionario };

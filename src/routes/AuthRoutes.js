@@ -5,7 +5,7 @@ import {
   signin,
   criarFuncionario,
   me,
-} from "../controllers/AuthController.js";
+} from "../controllers/authController.js";
 import {
   authenticateToken,
   requirePerfil,
@@ -16,11 +16,10 @@ const router = Router();
 router.post("/signup", signup);
 router.post("/signin", signin);
 router.get("/me", authenticateToken, me);
-//!corrigir funcionario
 router.post(
   "/funcionarios",
   authenticateToken,
-  requirePerfil("admin"),
+  requirePerfil("ADMINISTRADOR"),
   criarFuncionario,
 );
 
