@@ -1,5 +1,11 @@
 import prisma from "../prisma/client.js";
 
+const getAllProblems = async (idCidadao) => {
+  return await prisma.problema.findMany({
+    where: { id_cidadao: idCidadao },
+  });
+};
+
 const createProblem = async (data, file, idCidadao) => {
   const { descricao } = data ?? {};
   const id_categoria = Number(data?.id_categoria);
@@ -10,7 +16,7 @@ const createProblem = async (data, file, idCidadao) => {
   const longitude = semValor(data?.longitude) ? null : Number(data.longitude);
 
   if (!descricao || !id_categoria) {
-    const error = new Error("Indica a descrição, gravidade e a categoria");
+    const error = new Error("Indica a descrição e a categoria");
     error.status = 400;
     throw error;
   }
@@ -59,4 +65,4 @@ const createProblem = async (data, file, idCidadao) => {
   });
 };
 
-export { createProblem };
+export { getAllProblems, createProblem };

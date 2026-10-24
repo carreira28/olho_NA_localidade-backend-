@@ -3,8 +3,19 @@ const notFound = (req, res) => {
 };
 
 const errorHandler = (err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: err.message || "Erro interno do servidor" });
+  console.error(err);
+
+  if (err?.name === "MulterError") {
+    return res
+      .status(400)
+      .json({ message: "Ficheiro inválido (campo, tamanho ou quantidade)" });
+  }
+
+  if (err?.status && err.status < 500) {
+    return res.status(err.status).json({ message: err.message });
+  }
+
+  res.status(500).json({ message: "Erro interno do servidor" });
 };
 
 export { notFound, errorHandler };

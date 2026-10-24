@@ -1,5 +1,13 @@
 import * as OcorrenciasServices from "../services/ocorrenciasServices.js";
 
+const getAllProblems = async (req, res, next) => {
+  try {
+    const problem = await OcorrenciasServices.getAllProblems(req.user.id);
+    return res.status(200).json(problem);
+  } catch (er) {
+    next(err);
+  }
+};
 const createProblem = async (req, res, next) => {
   try {
     const problem = await OcorrenciasServices.createProblem(
@@ -13,4 +21,4 @@ const createProblem = async (req, res, next) => {
   }
 };
 
-export { createProblem };
+export { getAllProblems, createProblem };

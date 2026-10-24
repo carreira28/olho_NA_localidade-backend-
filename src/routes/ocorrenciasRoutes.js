@@ -1,5 +1,8 @@
 import { Router } from "express";
-import { createProblem } from "../controllers/ocorrenciasController.js";
+import {
+  getAllProblems,
+  createProblem,
+} from "../controllers/ocorrenciasController.js";
 import {
   authenticateToken,
   apenasCidadao,
@@ -8,6 +11,7 @@ import upload from "../middlewares/upload.js";
 
 const router = Router();
 
+router.get("/problemas", authenticateToken, getAllProblems);
 router.post(
   "/problema",
   authenticateToken,
