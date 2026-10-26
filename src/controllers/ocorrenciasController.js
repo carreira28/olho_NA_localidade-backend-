@@ -4,10 +4,31 @@ const getAllProblems = async (req, res, next) => {
   try {
     const problem = await OcorrenciasServices.getAllProblems(req.user.id);
     return res.status(200).json(problem);
-  } catch (er) {
+  } catch (err) {
     next(err);
   }
 };
+
+const getProblem = async (req, res, next) => {
+  try {
+    const problem = await OcorrenciasServices.getProblem(
+      req.user.id,
+      Number(req.params.id),
+    );
+    return res.status(200).json(problem);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getCategorias = async (req, res, next) => {
+  try {
+    return res.status(200).json(await OcorrenciasServices.getCategorias());
+  } catch (err) {
+    next(err);
+  }
+};
+
 const createProblem = async (req, res, next) => {
   try {
     const problem = await OcorrenciasServices.createProblem(
@@ -21,4 +42,4 @@ const createProblem = async (req, res, next) => {
   }
 };
 
-export { getAllProblems, createProblem };
+export { getAllProblems, getProblem, getCategorias, createProblem };

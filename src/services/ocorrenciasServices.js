@@ -3,6 +3,50 @@ import prisma from "../prisma/client.js";
 const getAllProblems = async (idCidadao) => {
   return await prisma.problema.findMany({
     where: { id_cidadao: idCidadao },
+    include: {
+      fotos: true,
+      categoria: true,
+      historicoEstados: {
+        include: { estado: { include: { tipo: true } } },
+        orderBy: { data_hora: "desc" },
+      },
+    },
+    orderBy: { data_criacao: "desc" },
+  });
+};
+
+const getProblem = async (idCidadao, id) => {
+  if (!Number.isInteger(id)) {
+    const error = new Error("Identificador inválido");
+    error.status = 400;
+    throw error;
+  }
+
+  const problema = await prisma.problema.findFirst({
+    where: { id_problema: id, id_cidadao: idCidadao },
+    include: {
+      fotos: true,
+      categoria: true,
+      historicoEstados: {
+        include: { estado: { include: { tipo: true } } },
+        orderBy: [{ data_hora: "desc" }, { id_historicoEstados: "desc" }],
+      },
+    },
+  });
+
+  if (!problema) {
+    const error = new Error("Ocorrência não encontrada");
+    error.status = 404;
+    throw error;
+  }
+
+  return problema;
+};
+
+const getCategorias = async () => {
+  return prisma.categoria.findMany({
+    select: { id_categoria: true, tipo_categoria: true },
+    orderBy: { tipo_categoria: "asc" },
   });
 };
 
@@ -65,4 +109,4 @@ const createProblem = async (data, file, idCidadao) => {
   });
 };
 
-export { getAllProblems, createProblem };
+export { getAllProblems, getProblem, getCategorias, createProblem };
