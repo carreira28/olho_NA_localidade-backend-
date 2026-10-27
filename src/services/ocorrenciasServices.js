@@ -1,5 +1,6 @@
 import prisma from "../prisma/client.js";
 
+//cidadão
 const getAllProblems = async (idCidadao) => {
   return await prisma.problema.findMany({
     where: { id_cidadao: idCidadao },
@@ -15,6 +16,7 @@ const getAllProblems = async (idCidadao) => {
   });
 };
 
+//cidadão
 const getProblem = async (idCidadao, id) => {
   if (!Number.isInteger(id)) {
     const error = new Error("Identificador inválido");
@@ -50,6 +52,21 @@ const getCategorias = async () => {
   });
 };
 
+const getAllProblemsOfAllCitizen = async () => {
+  return prisma.problema.findMany({
+    include: {
+      categoria: true,
+      prioridade: true,
+      historicoEstados: {
+        include: { estado: { include: { tipo: true } } },
+        orderBy: [{ data_hora: "desc" }, { id_historicoEstados: "desc" }],
+      },
+    },
+    orderBy: { data_criacao: "desc" },
+  });
+};
+
+//cidadão
 const createProblem = async (data, file, idCidadao) => {
   const { descricao } = data ?? {};
   const id_categoria = Number(data?.id_categoria);
@@ -109,4 +126,10 @@ const createProblem = async (data, file, idCidadao) => {
   });
 };
 
-export { getAllProblems, getProblem, getCategorias, createProblem };
+export {
+  getAllProblems,
+  getProblem,
+  getAllProblemsOfAllCitizen,
+  getCategorias,
+  createProblem,
+};

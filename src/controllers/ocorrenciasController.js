@@ -29,6 +29,15 @@ const getCategorias = async (req, res, next) => {
   }
 };
 
+const getAllProblemsOfAllCitizen = async (req, res, next) => {
+  try {
+    const problemas = await OcorrenciasServices.getAllProblemsOfAllCitizen();
+    return res.status(200).json(problemas);
+  } catch (err) {
+    next(err);
+  }
+};
+
 const createProblem = async (req, res, next) => {
   try {
     const problem = await OcorrenciasServices.createProblem(
@@ -42,4 +51,10 @@ const createProblem = async (req, res, next) => {
   }
 };
 
-export { getAllProblems, getProblem, getCategorias, createProblem };
+export {
+  getAllProblems,
+  getProblem,
+  getAllProblemsOfAllCitizen,
+  getCategorias,
+  createProblem,
+};
