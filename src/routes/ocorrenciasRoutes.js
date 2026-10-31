@@ -5,6 +5,10 @@ import {
   getCategorias,
   getProblem,
   getAllProblemsOfAllCitizen,
+  getProblemForManagement,
+  getPrioridades,
+  rejeitarProblema,
+  validarProblema,
 } from "../controllers/ocorrenciasController.js";
 import {
   authenticateToken,
@@ -24,12 +28,41 @@ router.get(
   requirePerfil("ADMINISTRADOR"),
   getAllProblemsOfAllCitizen,
 );
+router.get(
+  "/gestao/problemas/:id",
+  authenticateToken,
+  requirePerfil("ADMINISTRADOR", "FUNCIONARIO MUNICIPAL"),
+  getProblemForManagement,
+);
 router.post(
   "/problema",
   authenticateToken,
   apenasCidadao,
   upload.array("fotos"),
   createProblem,
+);
+
+router.get("/prioridades", authenticateToken, getPrioridades);
+
+router.get(
+  "/gestao/problemas/:id",
+  authenticateToken,
+  requirePerfil("ADMINISTRADOR", "FUNCIONARIO MUNICIPAL"),
+  getProblemForManagement,
+);
+
+router.patch(
+  "/problemas/:id/validar",
+  authenticateToken,
+  requirePerfil("ADMINISTRADOR"),
+  validarProblema,
+);
+
+router.patch(
+  "/problemas/:id/rejeitar",
+  authenticateToken,
+  requirePerfil("ADMINISTRADOR"),
+  rejeitarProblema,
 );
 
 export default router;

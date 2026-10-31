@@ -51,10 +51,59 @@ const createProblem = async (req, res, next) => {
   }
 };
 
+const getPrioridades = async (req, res, next) => {
+  try {
+    return res.status(200).json(await OcorrenciasServices.getPrioridades());
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getProblemForManagement = async (req, res, next) => {
+  try {
+    const problema = await OcorrenciasServices.getProblemForManagement(
+      Number(req.params.id),
+      req.user,
+    );
+    return res.status(200).json(problema);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const validarProblema = async (req, res, next) => {
+  try {
+    const problem = await OcorrenciasServices.validarProblema(
+      Number(req.params.id),
+      req.body,
+      req.user.id,
+    );
+    return res.status(200).json(problem);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const rejeitarProblema = async (req, res, next) => {
+  try {
+    const problem = await OcorrenciasServices.rejeitarProblema(
+      Number(req.params.id),
+      req.user.id,
+    );
+    return res.status(200).json(problem);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export {
   getAllProblems,
   getProblem,
   getAllProblemsOfAllCitizen,
   getCategorias,
   createProblem,
+  getProblemForManagement,
+  getPrioridades,
+  rejeitarProblema,
+  validarProblema,
 };
