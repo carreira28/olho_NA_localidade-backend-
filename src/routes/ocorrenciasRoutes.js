@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getAllProblems,
   createProblem,
+  definirLocalizacao,
   getCategorias,
   getProblem,
   getAllProblemsOfAllCitizen,
@@ -40,6 +41,14 @@ router.post(
   apenasCidadao,
   upload.array("fotos"),
   createProblem,
+);
+
+//!Não verificado
+router.patch(
+  "/problemas/:id/localizacao",
+  authenticateToken,
+  apenasCidadao,
+  definirLocalizacao,
 );
 
 router.get("/prioridades", authenticateToken, getPrioridades);

@@ -51,6 +51,20 @@ const createProblem = async (req, res, next) => {
   }
 };
 
+//!Não verificado
+const definirLocalizacao = async (req, res, next) => {
+  try {
+    const resultado = await OcorrenciasServices.definirLocalizacao(
+      Number(req.params.id),
+      req.body,
+      req.user.id,
+    );
+    return res.status(200).json(resultado);
+  } catch (err) {
+    next(err);
+  }
+};
+
 const getPrioridades = async (req, res, next) => {
   try {
     return res.status(200).json(await OcorrenciasServices.getPrioridades());
@@ -102,6 +116,7 @@ export {
   getAllProblemsOfAllCitizen,
   getCategorias,
   createProblem,
+  definirLocalizacao,
   getProblemForManagement,
   getPrioridades,
   rejeitarProblema,

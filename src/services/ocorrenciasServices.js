@@ -126,6 +126,41 @@ const createProblem = async (data, file, idCidadao) => {
   });
 };
 
+//!Não verificado
+const definirLocalizacao = async (id, data, idCidadao) => {
+  const semValor = (v) => v === undefined || v === null || v === "";
+  const latitude = semValor(data?.latitude) ? null : Number(data.latitude);
+  const longitude = semValor(data?.longitude) ? null : Number(data.longitude);
+
+  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+    const error = new Error("Localização invalida");
+    error.status = 400;
+    throw error;
+  }
+
+  const problema = await prisma.problema.findFirst({
+    where: { id_problema: id, id_cidadao: idCidadao },
+  });
+
+  if (!problema) {
+    const error = new Error("Ocorrência não encontrada");
+    error.status = 404;
+    throw error;
+  }
+
+  if (problema.latitude !== null) {
+    const error = new Error("Ocorrência já tem localização");
+    error.status = 404;
+    throw error;
+  }
+
+  return prisma.problema.update({
+    where: { id_problema: id },
+    data: { latitude, longitude },
+    select: { id_problema: true, latitude: true, longitude: true },
+  });
+};
+
 const getPrioridades = async () =>
   prisma.prioridade.findMany({ orderBy: { id_prioridade: "asc" } });
 
@@ -320,6 +355,7 @@ export {
   getAllProblemsOfAllCitizen,
   getCategorias,
   createProblem,
+  definirLocalizacao,
   getProblemForManagement,
   validarProblema,
   rejeitarProblema,
