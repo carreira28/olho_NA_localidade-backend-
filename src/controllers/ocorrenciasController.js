@@ -29,15 +29,6 @@ const getCategorias = async (req, res, next) => {
   }
 };
 
-const getAllProblemsOfAllCitizen = async (req, res, next) => {
-  try {
-    const problemas = await OcorrenciasServices.getAllProblemsOfAllCitizen();
-    return res.status(200).json(problemas);
-  } catch (err) {
-    next(err);
-  }
-};
-
 const createProblem = async (req, res, next) => {
   try {
     const problem = await OcorrenciasServices.createProblem(
@@ -85,6 +76,17 @@ const getProblemForManagement = async (req, res, next) => {
   }
 };
 
+const getProblemsForManagement = async (req, res, next) => {
+  try {
+    const problemas = await OcorrenciasServices.getProblemsForManagement(
+      req.user,
+    );
+    return res.status(200).json(problemas);
+  } catch (err) {
+    next(err);
+  }
+};
+
 const validarProblema = async (req, res, next) => {
   try {
     const problem = await OcorrenciasServices.validarProblema(
@@ -113,7 +115,7 @@ const rejeitarProblema = async (req, res, next) => {
 export {
   getAllProblems,
   getProblem,
-  getAllProblemsOfAllCitizen,
+  getProblemsForManagement,
   getCategorias,
   createProblem,
   definirLocalizacao,

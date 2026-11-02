@@ -52,20 +52,6 @@ const getCategorias = async () => {
   });
 };
 
-const getAllProblemsOfAllCitizen = async () => {
-  return prisma.problema.findMany({
-    include: {
-      categoria: true,
-      prioridade: true,
-      historicoEstados: {
-        include: { estado: { include: { tipo: true } } },
-        orderBy: [{ data_hora: "desc" }, { id_historicoEstados: "desc" }],
-      },
-    },
-    orderBy: { data_criacao: "desc" },
-  });
-};
-
 //cidadão
 const createProblem = async (data, files, idCidadao) => {
   const { descricao } = data ?? {};
@@ -115,7 +101,7 @@ const createProblem = async (data, files, idCidadao) => {
     throw error;
   }
 
-  const fotos = (file ?? []).map((f) => ({ foto: f.path }));
+  const fotos = (files ?? []).map((f) => ({ foto: f.path }));
 
   return prisma.problema.create({
     data: {
@@ -133,11 +119,16 @@ const createProblem = async (data, files, idCidadao) => {
   });
 };
 
-//!Não verificado
 const definirLocalizacao = async (id, data, idCidadao) => {
   const semValor = (v) => v === undefined || v === null || v === "";
   const latitude = semValor(data?.latitude) ? NaN : Number(data.latitude);
   const longitude = semValor(data?.longitude) ? NaN : Number(data.longitude);
+
+  if (!Number.isInteger(id)) {
+    const error = new Error("Identificador inválido");
+    error.status = 400;
+    throw error;
+  }
 
   if (
     !Number.isFinite(latitude) ||
@@ -164,7 +155,7 @@ const definirLocalizacao = async (id, data, idCidadao) => {
 
   if (problema.latitude !== null) {
     const error = new Error("Ocorrência já tem localização");
-    error.status = 404;
+    error.status = 409;
     throw error;
   }
 
@@ -181,7 +172,7 @@ const getPrioridades = async () =>
 const getProblemForManagement = async (id, user) => {
   if (!Number.isInteger(id)) {
     const error = new Error("Identificador inválido");
-    error.status = 404;
+    error.status = 400;
     throw error;
   }
 
@@ -210,10 +201,36 @@ const getProblemForManagement = async (id, user) => {
 
   if (!problema) {
     const error = new Error("Ocorrência não encontrada");
-    error.status = 400;
+    error.status = 404;
     throw error;
   }
   return problema;
+};
+
+//!não verificado
+const getProblemsForManagement = async (user) => {
+  const eAdmin = user.perfil?.toUpperCase() === "ADMINISTRADOR";
+  const where = {};
+
+  if (!eAdmin) {
+    if (!user.departamento) {
+      const error = new Error("Funcionário sem departamento atribuído");
+      error.status = 404;
+      throw error;
+    }
+    where.id_departamento = user.departamento;
+    where.historicoEstados = { some: { estado: { nome_estado: "VALIDADA" } } };
+  }
+
+  return prisma.problema.findMany({
+    where,
+    include: {
+      categoria: true,
+      prioridade: true,
+      ...incluirHistorico,
+    },
+    orderBy: { data_criacao: "desc" },
+  });
 };
 
 const estadoAtual = (historico, tipo) =>
@@ -255,7 +272,7 @@ const validarProblema = async (id, data, idFuncionario) => {
       });
       if (!problema) {
         const error = new Error("Ocorrência não encontrada");
-        error.status = 400;
+        error.status = 404;
         throw error;
       }
 
@@ -288,7 +305,7 @@ const validarProblema = async (id, data, idFuncionario) => {
         where: { nome_estado: "VALIDADA" },
       });
       if (!estado) {
-        const error = new Error("Categoria inválida");
+        const error = new Error("Estado inválido");
         error.status = 500;
         throw error;
       }
@@ -367,7 +384,7 @@ const rejeitarProblema = async (id, idFuncionario) => {
 export {
   getAllProblems,
   getProblem,
-  getAllProblemsOfAllCitizen,
+  getProblemsForManagement,
   getCategorias,
   createProblem,
   definirLocalizacao,

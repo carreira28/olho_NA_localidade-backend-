@@ -5,7 +5,7 @@ import {
   definirLocalizacao,
   getCategorias,
   getProblem,
-  getAllProblemsOfAllCitizen,
+  getProblemsForManagement,
   getProblemForManagement,
   getPrioridades,
   rejeitarProblema,
@@ -23,12 +23,14 @@ const router = Router();
 router.get("/problemas", authenticateToken, apenasCidadao, getAllProblems);
 router.get("/problema/:id", authenticateToken, apenasCidadao, getProblem);
 router.get("/categorias", authenticateToken, getCategorias);
+
 router.get(
-  "/OcorrenciasCidadao",
+  "/gestao/problemas",
   authenticateToken,
-  requirePerfil("ADMINISTRADOR"),
-  getAllProblemsOfAllCitizen,
+  requirePerfil("ADMINISTRADOR", "FUNCIONARIO MUNICIPAL"),
+  getProblemsForManagement,
 );
+
 router.get(
   "/gestao/problemas/:id",
   authenticateToken,
@@ -52,13 +54,6 @@ router.patch(
 );
 
 router.get("/prioridades", authenticateToken, getPrioridades);
-
-router.get(
-  "/gestao/problemas/:id",
-  authenticateToken,
-  requirePerfil("ADMINISTRADOR", "FUNCIONARIO MUNICIPAL"),
-  getProblemForManagement,
-);
 
 router.patch(
   "/problemas/:id/validar",
