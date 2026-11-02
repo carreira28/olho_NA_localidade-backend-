@@ -67,14 +67,14 @@ const getAllProblemsOfAllCitizen = async () => {
 };
 
 //cidadão
-const createProblem = async (data, file, idCidadao) => {
+const createProblem = async (data, files, idCidadao) => {
   const { descricao } = data ?? {};
   const id_categoria = Number(data?.id_categoria);
   const gravidade = data?.gravidade === true || data?.gravidade === "true";
 
   const semValor = (v) => v === undefined || v === null || v === "";
-  const latitude = semValor(data?.latitude) ? null : Number(data.latitude);
-  const longitude = semValor(data?.longitude) ? null : Number(data.longitude);
+  const latitude = semValor(data?.latitude) ? NaN : Number(data.latitude);
+  const longitude = semValor(data?.longitude) ? NaN : Number(data.longitude);
 
   if (!descricao || !id_categoria) {
     const error = new Error("Indica a descrição e a categoria");
@@ -82,7 +82,14 @@ const createProblem = async (data, file, idCidadao) => {
     throw error;
   }
 
-  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+  if (
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude) ||
+    latitude < -90 ||
+    latitude > 90 ||
+    longitude < -180 ||
+    longitude > 180
+  ) {
     const error = new Error("Localização invalida");
     error.status = 400;
     throw error;
@@ -104,7 +111,7 @@ const createProblem = async (data, file, idCidadao) => {
 
   if (!estado) {
     const error = new Error("Estado invalido");
-    error.status = 400;
+    error.status = 500;
     throw error;
   }
 
@@ -129,10 +136,17 @@ const createProblem = async (data, file, idCidadao) => {
 //!Não verificado
 const definirLocalizacao = async (id, data, idCidadao) => {
   const semValor = (v) => v === undefined || v === null || v === "";
-  const latitude = semValor(data?.latitude) ? null : Number(data.latitude);
-  const longitude = semValor(data?.longitude) ? null : Number(data.longitude);
+  const latitude = semValor(data?.latitude) ? NaN : Number(data.latitude);
+  const longitude = semValor(data?.longitude) ? NaN : Number(data.longitude);
 
-  if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+  if (
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude) ||
+    latitude < -90 ||
+    latitude > 90 ||
+    longitude < -180 ||
+    longitude > 180
+  ) {
     const error = new Error("Localização invalida");
     error.status = 400;
     throw error;
@@ -167,7 +181,7 @@ const getPrioridades = async () =>
 const getProblemForManagement = async (id, user) => {
   if (!Number.isInteger(id)) {
     const error = new Error("Identificador inválido");
-    error.status = 400;
+    error.status = 404;
     throw error;
   }
 
@@ -179,7 +193,7 @@ const getProblemForManagement = async (id, user) => {
   const problema = await prisma.problema.findFirst({
     where,
     include: {
-      cidadao: { select: { nome: true, email: true } }, // nunca a password
+      cidadao: { select: { nome: true, email: true } },
       fotos: true,
       categoria: true,
       prioridade: true,
@@ -206,6 +220,13 @@ const estadoAtual = (historico, tipo) =>
   historico.find((h) => h.estado.tipo.nome_tipo === tipo)?.estado.nome_estado ??
   null;
 
+const incluirHistorico = {
+  historicoEstados: {
+    include: { estado: { include: { tipo: true } } },
+    orderBy: [{ data_hora: "desc" }, { id_historicoEstados: "desc" }],
+  },
+};
+
 const validarProblema = async (id, data, idFuncionario) => {
   const id_categoria = Number(data?.id_categoria);
   const id_prioridade = Number(data?.id_prioridade);
@@ -215,90 +236,82 @@ const validarProblema = async (id, data, idFuncionario) => {
     error.status = 400;
     throw error;
   }
-
   if (!Number.isInteger(id_categoria)) {
     const error = new Error("Indica a categoria");
     error.status = 400;
     throw error;
   }
-
   if (!Number.isInteger(id_prioridade)) {
     const error = new Error("Indica a prioridade");
     error.status = 400;
     throw error;
   }
 
-  return prisma.$transaction(async (tx) => {
-    const problema = await tx.problema.findUnique({
-      where: { id_problema: id },
-      include: {
-        historicoEstados: {
-          include: { estado: { include: { tipo: true } } },
-          orderBy: [{ data_hora: "desc" }, { id_historicoEstados: "desc" }],
-        },
-      },
-    });
+  return prisma.$transaction(
+    async (tx) => {
+      const problema = await tx.problema.findUnique({
+        where: { id_problema: id },
+        include: incluirHistorico,
+      });
+      if (!problema) {
+        const error = new Error("Ocorrência não encontrada");
+        error.status = 400;
+        throw error;
+      }
 
-    if (!problema) {
-      const error = new Error("Ocorrência não encontrada");
-      error.status = 404;
-      throw error;
-    }
+      const validacao = estadoAtual(problema.historicoEstados, "VALIDACAO");
+      if (validacao?.toUpperCase() !== "PENDENTE") {
+        const error = new Error("A ocorrência já foi validada ou rejeitada");
+        error.status = 409;
+        throw error;
+      }
 
-    const validacao = estadoAtual(problema.historicoEstados, "VALIDADA");
+      const categoria = await tx.categoria.findUnique({
+        where: { id_categoria },
+      });
+      if (!categoria) {
+        const error = new Error("Categoria inválida");
+        error.status = 400;
+        throw error;
+      }
 
-    if (validacao?.toUpperCase() !== "VALIDACAO") {
-      const error = new Error("A ocorrência ja foi validade ou rejeitada");
-      error.status = 409;
-      throw error;
-    }
+      const prioridade = await tx.prioridade.findUnique({
+        where: { id_prioridade },
+      });
+      if (!prioridade) {
+        const error = new Error("Prioridade inválida");
+        error.status = 400;
+        throw error;
+      }
 
-    const categoria = await tx.categoria.findUnique({
-      where: { id_categoria },
-    });
+      const estado = await tx.estado.findUnique({
+        where: { nome_estado: "VALIDADA" },
+      });
+      if (!estado) {
+        const error = new Error("Categoria inválida");
+        error.status = 500;
+        throw error;
+      }
 
-    if (!categoria) {
-      const error = new Error("Categoria Invalida");
-      error.status = 404;
-      throw error;
-    }
-
-    const prioridade = await tx.prioridade.findUnique({
-      where: { id_prioridade },
-    });
-
-    if (!prioridade) {
-      const error = new Error("Prioridade Invalida");
-      error.status = 404;
-      throw error;
-    }
-
-    const estado = await tx.estado.findUnique({
-      where: { nome_estado: "VALIDACAO" },
-    });
-    if (!estado) {
-      const error = new Error("Estado não existe");
-      error.status = 500;
-      throw error;
-    }
-
-    return tx.problema.update({
-      where: { id_problema: id },
-      data: {
-        id_categoria,
-        id_prioridade,
-        id_departamento: categoria.id_departamento,
-        historicoEstados: {
-          create: {
-            id_estado: estado.id_estado,
-            id_funcionarioMunicipal: idFuncionario,
-            id_departamento: categoria.id_departamento,
+      return tx.problema.update({
+        where: { id_problema: id },
+        data: {
+          id_categoria,
+          id_prioridade,
+          id_departamento: categoria.id_departamento,
+          historicoEstados: {
+            create: {
+              id_estado: estado.id_estado,
+              id_funcionarioMunicipal: idFuncionario,
+              id_departamento: categoria.id_departamento,
+            },
           },
         },
-      },
-      include: { categoria: true, prioridade: true },
-    });
-  });
+        include: { categoria: true, prioridade: true },
+      });
+    },
+    { isolationLevel: "Serializable" },
+  );
 };
 
 const rejeitarProblema = async (id, idFuncionario) => {
@@ -308,45 +321,47 @@ const rejeitarProblema = async (id, idFuncionario) => {
     throw error;
   }
 
-  return prisma.$transaction(async (tx) => {
-    const problema = await tx.problema.findUnique({
-      where: { id_problema: id },
-      include: {
-        historicoEstados: {
-          include: { estado: { include: { tipo: true } } },
-          orderBy: [{ data_hora: "desc" }, { id_historicoEstados: "desc" }],
+  return prisma.$transaction(
+    async (tx) => {
+      const problema = await tx.problema.findUnique({
+        where: { id_problema: id },
+        include: incluirHistorico,
+      });
+
+      if (!problema) {
+        const error = new Error("Ocorrência não encontrada");
+        error.status = 404;
+        throw error;
+      }
+
+      const validacao = estadoAtual(problema.historicoEstados, "VALIDACAO");
+      if (validacao?.toUpperCase() !== "PENDENTE") {
+        const error = new Error("A ocorrência já foi validada ou rejeitada");
+        error.status = 409;
+        throw error;
+      }
+
+      const estado = await tx.estado.findUnique({
+        where: { nome_estado: "REJEITADA" },
+      });
+      if (!estado) {
+        const error = new Error("Estado Invalido");
+        error.status = 400;
+        throw error;
+      }
+
+      await tx.historicoEstados.create({
+        data: {
+          id_problema: id,
+          id_estado: estado.id_estado,
+          id_funcionarioMunicipal: idFuncionario,
         },
-      },
-    });
+      });
 
-    if (!problema) {
-      const error = new Error("Ocorrência não encontrada");
-      error.status = 404;
-      throw error;
-    }
-
-    const validacao = estadoAtual(problema.historicoEstados, "VALIDADA");
-
-    if (validacao?.toUpperCase() !== "VALIDACAO") {
-      const error = new Error("A ocorrência ja foi validade ou rejeitada");
-      error.status = 409;
-      throw error;
-    }
-
-    if (!estado) {
-      const error = new Error("Estado não existe");
-      error.status = 500;
-      throw error;
-    }
-    await tx.historicoEstados.create({
-      data: {
-        id_problema: id,
-        id_estado: estado.id_estado,
-        id_funcionarioMunicipal: idFuncionario,
-      },
-    });
-    return { id_problema: id, validacao: ESTADO_REJEITADA };
-  });
+      return { id_problema: id, validacao: "REJEITADA" };
+    },
+    { isolationLevel: "Serializable" },
+  );
 };
 
 export {
