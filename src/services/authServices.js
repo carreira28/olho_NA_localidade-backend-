@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import prisma from "../prisma/client.js";
 
-const obterEstadoAtivo = async () => {
+const getActiveState = async () => {
   const estado = await prisma.estadoConta.findUnique({
     where: { tipo_estado_conta: "ATIVO" },
   });
@@ -17,7 +17,7 @@ const obterEstadoAtivo = async () => {
   return estado;
 };
 
-const emailEmUso = async (email) => {
+const emailInUse = async (email) => {
   const [cidadao, funcionario] = await Promise.all([
     prisma.cidadao.findUnique({
       where: { email },
@@ -40,13 +40,13 @@ const signup = async (data) => {
     throw error;
   }
 
-  if (await emailEmUso(email)) {
+  if (await emailInUse(email)) {
     const error = new Error("Email já registado");
     error.status = 409;
     throw error;
   }
 
-  const ativo = await obterEstadoAtivo();
+  const ativo = await getActiveState();
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const cidadao = await prisma.cidadao.create({
@@ -62,7 +62,7 @@ const signup = async (data) => {
   return { id: cidadao.id_cidadao, nome: cidadao.nome, email: cidadao.email };
 };
 
-const criarFuncionario = async (data, idAdmin) => {
+const createEmployee = async (data, idAdmin) => {
   const { nome, email, password, id_departamento } = data ?? {};
 
   if (!email || !password || !nome || !id_departamento) {
@@ -91,13 +91,13 @@ const criarFuncionario = async (data, idAdmin) => {
     throw error;
   }
 
-  if (await emailEmUso(email)) {
+  if (await emailInUse(email)) {
     const error = new Error("Email já registado");
     error.status = 409;
     throw error;
   }
 
-  const ativo = await obterEstadoAtivo();
+  const ativo = await getActiveState();
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const funcionario = await prisma.funcionarioMunicipal.create({
@@ -194,4 +194,4 @@ const signin = async (data) => {
   return { token, utilizador };
 };
 
-export { signin, signup, criarFuncionario };
+export { signin, signup, createEmployee };

@@ -43,9 +43,9 @@ const createProblem = async (req, res, next) => {
 };
 
 //!Não verificado
-const definirLocalizacao = async (req, res, next) => {
+const setLocation = async (req, res, next) => {
   try {
-    const resultado = await OcorrenciasServices.definirLocalizacao(
+    const resultado = await OcorrenciasServices.setLocation(
       Number(req.params.id),
       req.body,
       req.user.id,
@@ -56,9 +56,9 @@ const definirLocalizacao = async (req, res, next) => {
   }
 };
 
-const getPrioridades = async (req, res, next) => {
+const getPriorities = async (req, res, next) => {
   try {
-    return res.status(200).json(await OcorrenciasServices.getPrioridades());
+    return res.status(200).json(await OcorrenciasServices.getPriorities());
   } catch (err) {
     next(err);
   }
@@ -87,9 +87,9 @@ const getProblemsForManagement = async (req, res, next) => {
   }
 };
 
-const validarProblema = async (req, res, next) => {
+const validateProblem = async (req, res, next) => {
   try {
-    const problem = await OcorrenciasServices.validarProblema(
+    const problem = await OcorrenciasServices.validateProblem(
       Number(req.params.id),
       req.body,
       req.user.id,
@@ -100,9 +100,9 @@ const validarProblema = async (req, res, next) => {
   }
 };
 
-const rejeitarProblema = async (req, res, next) => {
+const rejectProblem = async (req, res, next) => {
   try {
-    const problem = await OcorrenciasServices.rejeitarProblema(
+    const problem = await OcorrenciasServices.rejectProblem(
       Number(req.params.id),
       req.user.id,
     );
@@ -118,9 +118,9 @@ export {
   getProblemsForManagement,
   getCategorias,
   createProblem,
-  definirLocalizacao,
+  setLocation,
   getProblemForManagement,
-  getPrioridades,
-  rejeitarProblema,
-  validarProblema,
+  getPriorities,
+  rejectProblem,
+  validateProblem,
 };

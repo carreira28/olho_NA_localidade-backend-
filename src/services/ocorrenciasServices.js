@@ -119,7 +119,7 @@ const createProblem = async (data, files, idCidadao) => {
   });
 };
 
-const definirLocalizacao = async (id, data, idCidadao) => {
+const setLocation = async (id, data, idCidadao) => {
   const semValor = (v) => v === undefined || v === null || v === "";
   const latitude = semValor(data?.latitude) ? NaN : Number(data.latitude);
   const longitude = semValor(data?.longitude) ? NaN : Number(data.longitude);
@@ -166,7 +166,7 @@ const definirLocalizacao = async (id, data, idCidadao) => {
   });
 };
 
-const getPrioridades = async () =>
+const getPriorities = async () =>
   prisma.prioridade.findMany({ orderBy: { id_prioridade: "asc" } });
 
 const getProblemForManagement = async (id, user) => {
@@ -233,7 +233,7 @@ const getProblemsForManagement = async (user) => {
   });
 };
 
-const estadoAtual = (historico, tipo) =>
+const currentState = (historico, tipo) =>
   historico.find((h) => h.estado.tipo.nome_tipo === tipo)?.estado.nome_estado ??
   null;
 
@@ -244,7 +244,7 @@ const incluirHistorico = {
   },
 };
 
-const validarProblema = async (id, data, idFuncionario) => {
+const validateProblem = async (id, data, idFuncionario) => {
   const id_categoria = Number(data?.id_categoria);
   const id_prioridade = Number(data?.id_prioridade);
 
@@ -276,7 +276,7 @@ const validarProblema = async (id, data, idFuncionario) => {
         throw error;
       }
 
-      const validacao = estadoAtual(problema.historicoEstados, "VALIDACAO");
+      const validacao = currentState(problema.historicoEstados, "VALIDACAO");
       if (validacao?.toUpperCase() !== "PENDENTE") {
         const error = new Error("A ocorrência já foi validada ou rejeitada");
         error.status = 409;
@@ -331,7 +331,7 @@ const validarProblema = async (id, data, idFuncionario) => {
   );
 };
 
-const rejeitarProblema = async (id, idFuncionario) => {
+const rejectProblem = async (id, idFuncionario) => {
   if (!Number.isInteger(id)) {
     const error = new Error("Identificador inválido");
     error.status = 400;
@@ -351,7 +351,7 @@ const rejeitarProblema = async (id, idFuncionario) => {
         throw error;
       }
 
-      const validacao = estadoAtual(problema.historicoEstados, "VALIDACAO");
+      const validacao = currentState(problema.historicoEstados, "VALIDACAO");
       if (validacao?.toUpperCase() !== "PENDENTE") {
         const error = new Error("A ocorrência já foi validada ou rejeitada");
         error.status = 409;
@@ -387,9 +387,9 @@ export {
   getProblemsForManagement,
   getCategorias,
   createProblem,
-  definirLocalizacao,
+  setLocation,
   getProblemForManagement,
-  validarProblema,
-  rejeitarProblema,
-  getPrioridades,
+  validateProblem,
+  rejectProblem,
+  getPriorities,
 };

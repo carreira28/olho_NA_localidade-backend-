@@ -1,15 +1,15 @@
 import { Router } from "express";
 import {
   getAllProblems,
-  createProblem,
-  definirLocalizacao,
-  getCategorias,
   getProblem,
   getProblemsForManagement,
+  getCategorias,
+  createProblem,
+  setLocation,
   getProblemForManagement,
-  getPrioridades,
-  rejeitarProblema,
-  validarProblema,
+  getPriorities,
+  rejectProblem,
+  validateProblem,
 } from "../controllers/ocorrenciasController.js";
 import {
   authenticateToken,
@@ -22,6 +22,7 @@ const router = Router();
 
 router.get("/problemas", authenticateToken, apenasCidadao, getAllProblems);
 router.get("/problema/:id", authenticateToken, apenasCidadao, getProblem);
+//!defenir quem pode aceder
 router.get("/categorias", authenticateToken, getCategorias);
 
 router.get(
@@ -50,23 +51,23 @@ router.patch(
   "/problemas/:id/localizacao",
   authenticateToken,
   apenasCidadao,
-  definirLocalizacao,
+  setLocation,
 );
 
-router.get("/prioridades", authenticateToken, getPrioridades);
+router.get("/prioridades", authenticateToken, getPriorities);
 
 router.patch(
   "/problemas/:id/validar",
   authenticateToken,
   requirePerfil("ADMINISTRADOR"),
-  validarProblema,
+  validateProblem,
 );
 
 router.patch(
   "/problemas/:id/rejeitar",
   authenticateToken,
   requirePerfil("ADMINISTRADOR"),
-  rejeitarProblema,
+  rejectProblem,
 );
 
 export default router;

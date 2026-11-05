@@ -3,7 +3,7 @@ import { Router } from "express";
 import {
   signup,
   signin,
-  criarFuncionario,
+  createEmployee,
   me,
 } from "../controllers/authController.js";
 import {
@@ -20,7 +20,7 @@ router.post(
   "/funcionarios",
   authenticateToken,
   requirePerfil("ADMINISTRADOR"),
-  criarFuncionario,
+  createEmployee,
 );
 
 export default router;
