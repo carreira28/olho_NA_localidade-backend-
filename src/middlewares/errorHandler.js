@@ -8,7 +8,7 @@ const errorHandler = (err, req, res, next) => {
   if (err?.name === "MulterError") {
     return res
       .status(400)
-      .json({ message: "Ficheiro inválido (campo, tamanho ou quantidade)" });
+      .json({ message: "Ficheiro inválido (maximo 3 imagens com 4 MB)" });
   }
 
   if (err?.status && err.status < 500) {
