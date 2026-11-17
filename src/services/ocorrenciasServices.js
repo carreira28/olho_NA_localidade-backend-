@@ -68,17 +68,21 @@ const createProblem = async (data, files, idCidadao) => {
     throw error;
   }
 
-  if (
-    !Number.isFinite(latitude) ||
-    !Number.isFinite(longitude) ||
-    latitude < -90 ||
-    latitude > 90 ||
-    longitude < -180 ||
-    longitude > 180
-  ) {
-    const error = new Error("Localização invalida");
-    error.status = 400;
-    throw error;
+  const temLocalizacao = !Number.isNaN(latitude) || !Number.isNaN(longitude);
+
+  if (temLocalizacao) {
+    if (
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude) ||
+      latitude < -90 ||
+      latitude > 90 ||
+      longitude < -180 ||
+      longitude > 180
+    ) {
+      const error = new Error("Localização invalida");
+      error.status = 400;
+      throw error;
+    }
   }
 
   const categoria = await prisma.categoria.findUnique({
@@ -107,8 +111,8 @@ const createProblem = async (data, files, idCidadao) => {
     data: {
       descricao: descricao.trim(),
       gravidade,
-      latitude,
-      longitude,
+      latitude: temLocalizacao ? latitude : null,
+      longitude: temLocalizacao ? longitude : null,
       id_cidadao: idCidadao,
       id_categoria,
       id_departamento: categoria.id_departamento,

@@ -22,7 +22,6 @@ const router = Router();
 
 router.get("/problemas", authenticateToken, apenasCidadao, getAllProblems);
 router.get("/problema/:id", authenticateToken, apenasCidadao, getProblem);
-//!defenir quem pode aceder
 router.get("/categorias", authenticateToken, getCategorias);
 
 router.get(
@@ -46,7 +45,6 @@ router.post(
   createProblem,
 );
 
-//!Não verificado
 router.patch(
   "/problemas/:id/localizacao",
   authenticateToken,
