@@ -48,7 +48,6 @@ const setLocation = async (req, res, next) => {
     const resultado = await OcorrenciasServices.setLocation(
       Number(req.params.id),
       req.body,
-      req.user.id,
     );
     return res.status(200).json(resultado);
   } catch (err) {

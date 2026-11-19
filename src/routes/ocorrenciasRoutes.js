@@ -15,6 +15,7 @@ import {
   authenticateToken,
   apenasCidadao,
   requirePerfil,
+  apenasCidadaoOuAdmin,
 } from "../middlewares/authenticate.js";
 import upload from "../middlewares/upload.js";
 
@@ -48,7 +49,7 @@ router.post(
 router.patch(
   "/problemas/:id/localizacao",
   authenticateToken,
-  apenasCidadao,
+  apenasCidadaoOuAdmin,
   setLocation,
 );
 

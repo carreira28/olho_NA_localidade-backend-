@@ -36,4 +36,25 @@ const requirePerfil = (...perfis) => {
   };
 };
 
-export { authenticateToken, apenasCidadao, requirePerfil };
+const apenasCidadaoOuAdmin = (req, res, next) => {
+  const tipo = req.user?.tipo?.toLowerCase();
+  const perfil = req.user?.perfil?.toLowerCase();
+
+  if (
+    tipo === "cidadao" ||
+    (tipo === "funcionario" && perfil === "administrador")
+  ) {
+    return next();
+  }
+
+  return res.status(403).json({
+    message: "Sem permissões para esta ação",
+  });
+};
+
+export {
+  authenticateToken,
+  apenasCidadao,
+  requirePerfil,
+  apenasCidadaoOuAdmin,
+};

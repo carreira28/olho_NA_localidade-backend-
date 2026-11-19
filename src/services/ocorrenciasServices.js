@@ -122,8 +122,8 @@ const createProblem = async (data, files, idCidadao) => {
     include: { fotos: true, categoria: true },
   });
 };
-
-const setLocation = async (id, data, idCidadao) => {
+/*id_cidadao romovido para que o admin e o cidadao possam alterar a localização */
+const setLocation = async (id, data) => {
   const semValor = (v) => v === undefined || v === null || v === "";
   const latitude = semValor(data?.latitude) ? NaN : Number(data.latitude);
   const longitude = semValor(data?.longitude) ? NaN : Number(data.longitude);
@@ -148,7 +148,7 @@ const setLocation = async (id, data, idCidadao) => {
   }
 
   const problema = await prisma.problema.findFirst({
-    where: { id_problema: id, id_cidadao: idCidadao },
+    where: { id_problema: id },
   });
 
   if (!problema) {
