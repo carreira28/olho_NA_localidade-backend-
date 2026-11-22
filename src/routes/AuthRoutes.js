@@ -19,7 +19,7 @@ router.get("/me", authenticateToken, me);
 router.post(
   "/funcionarios",
   authenticateToken,
-  requirePerfil("ADMINISTRADOR"),
+  requirePerfil("ADMINISTRADOR", "SUPER ADMIN"),
   createEmployee,
 );
 

@@ -7,13 +7,6 @@ const getActiveState = async () => {
     where: { tipo_estado_conta: "ATIVO" },
   });
 
-  if (!estado) {
-    const error = new Error(
-      'Estado de conta "Ativa" não existe. Corre o seed.',
-    );
-    error.status = 500;
-    throw error;
-  }
   return estado;
 };
 
@@ -63,26 +56,65 @@ const signup = async (data) => {
 };
 
 const createEmployee = async (data, idAdmin) => {
-  const { nome, email, password, id_departamento } = data ?? {};
+  const { nome, email, password, id_departamento, tipoPerfil } = data ?? {};
 
-  if (!email || !password || !nome || !id_departamento) {
-    const error = new Error("Indica o nome, email, password e o departamento");
+  if (!email || !password || !nome) {
+    const error = new Error("Indica o nome, email e password");
     error.status = 400;
     throw error;
   }
 
-  const departamento = await prisma.departamento.findUnique({
-    where: { id_departamento },
-  });
+  const perfisPermitidos = ["FUNCIONARIO MUNICIPAL", "ADMINISTRADOR"];
 
-  if (!departamento) {
-    const error = new Error("Departamento inválido");
+  if (!perfisPermitidos.includes(tipoPerfil)) {
+    const error = new Error("Perfil inválido.");
     error.status = 400;
     throw error;
   }
 
+  let departamentoId = null;
+
+  if (tipoPerfil === "FUNCIONARIO MUNICIPAL") {
+    if (
+      id_departamento === undefined ||
+      id_departamento === null ||
+      id_departamento === ""
+    ) {
+      const error = new Error(
+        "É obrigatório indicar um departamento para o funcionário municipal",
+      );
+      error.status = 400;
+      throw error;
+    }
+
+    departamentoId = Number(id_departamento);
+
+    if (!Number.isInteger(departamentoId) || departamentoId <= 0) {
+      const error = new Error("Departamento inválido");
+      error.status = 400;
+      throw error;
+    }
+
+    const departamento = await prisma.departamento.findUnique({
+      where: { id_departamento: departamentoId },
+    });
+
+    if (!departamento) {
+      const error = new Error("Departamento não existe");
+      error.status = 400;
+      throw error;
+    }
+  } else if (
+    id_departamento !== undefined &&
+    id_departamento !== null &&
+    id_departamento !== ""
+  ) {
+    const error = new Error("Um administrador não pode ter departamento");
+    error.status = 400;
+    throw error;
+  }
   const perfil = await prisma.perfil.findUnique({
-    where: { tipo_utilizador: "FUNCIONARIO MUNICIPAL" },
+    where: { tipo_utilizador: tipoPerfil },
   });
 
   if (!perfil) {
@@ -102,14 +134,17 @@ const createEmployee = async (data, idAdmin) => {
 
   const funcionario = await prisma.funcionarioMunicipal.create({
     data: {
-      nome: nome,
+      nome: nome.trim(),
       email,
       password: hashedPassword,
       id_perfil: perfil.id_perfil,
-      id_departamento,
+      id_departamento: departamentoId,
       id_estado_conta: ativo.id_estado_conta,
       historicoComoFuncionario: {
-        create: { id_estado_conta: ativo.id_estado_conta, id_admin: idAdmin },
+        create: {
+          id_estado_conta: ativo.id_estado_conta,
+          id_admin: idAdmin,
+        },
       },
     },
   });
@@ -118,6 +153,8 @@ const createEmployee = async (data, idAdmin) => {
     id: funcionario.id_funcionarioMunicipal,
     nome: funcionario.nome,
     email: funcionario.email,
+    perfil: tipoPerfil,
+    id_departamento: funcionario.id_departamento,
   };
 };
 

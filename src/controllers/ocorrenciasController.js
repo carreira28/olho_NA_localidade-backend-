@@ -45,11 +45,11 @@ const createProblem = async (req, res, next) => {
 //!Não verificado
 const setLocation = async (req, res, next) => {
   try {
-    const resultado = await OcorrenciasServices.setLocation(
+    const problema = await OcorrenciasServices.setLocation(
       Number(req.params.id),
       req.body,
     );
-    return res.status(200).json(resultado);
+    return res.status(200).json(problema);
   } catch (err) {
     next(err);
   }

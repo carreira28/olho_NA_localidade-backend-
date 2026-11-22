@@ -17,7 +17,7 @@ const PORT = process.env.SERVER_PORT || 3000;
 
 app.use("/auth", AuthRoutes);
 app.use("/api", OcorrenciasRoutes);
-app.use("/gestao", categoriaRoutes);
+app.use("/gestaoCategoria", categoriaRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

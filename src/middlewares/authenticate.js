@@ -42,7 +42,8 @@ const apenasCidadaoOuAdmin = (req, res, next) => {
 
   if (
     tipo === "cidadao" ||
-    (tipo === "funcionario" && perfil === "administrador")
+    (tipo === "funcionario" &&
+      ["administrador", "super admin"].includes(perfil))
   ) {
     return next();
   }

@@ -28,14 +28,14 @@ router.get("/categorias", authenticateToken, getCategorias);
 router.get(
   "/gestao/problemas",
   authenticateToken,
-  requirePerfil("ADMINISTRADOR", "FUNCIONARIO MUNICIPAL"),
+  requirePerfil("ADMINISTRADOR", "FUNCIONARIO MUNICIPAL", "SUPER ADMIN"),
   getProblemsForManagement,
 );
 
 router.get(
   "/gestao/problemas/:id",
   authenticateToken,
-  requirePerfil("ADMINISTRADOR", "FUNCIONARIO MUNICIPAL"),
+  requirePerfil("ADMINISTRADOR", "FUNCIONARIO MUNICIPAL", "SUPER ADMIN"),
   getProblemForManagement,
 );
 router.post(
@@ -58,14 +58,14 @@ router.get("/prioridades", authenticateToken, getPriorities);
 router.patch(
   "/problemas/:id/validar",
   authenticateToken,
-  requirePerfil("ADMINISTRADOR"),
+  requirePerfil("ADMINISTRADOR", "SUPER ADMIN"),
   validateProblem,
 );
 
 router.patch(
   "/problemas/:id/rejeitar",
   authenticateToken,
-  requirePerfil("ADMINISTRADOR"),
+  requirePerfil("ADMINISTRADOR", "SUPER ADMIN"),
   rejectProblem,
 );
 

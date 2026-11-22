@@ -1,5 +1,9 @@
 import { Router } from "express";
-import { getAllcategory } from "../controllers/categoriaContoller.js";
+import {
+  getAllcategory,
+  createCategoria,
+  updateCategory,
+} from "../controllers/categoriaContoller.js";
 
 import {
   authenticateToken,
@@ -9,10 +13,24 @@ import {
 const router = Router();
 
 router.get(
-  "/category",
+  "/categorias",
   authenticateToken,
-  requirePerfil("ADMINISTRADOR"),
+  requirePerfil("ADMINISTRADOR", "SUPER ADMIN"),
   getAllcategory,
+);
+
+router.post(
+  "/categoria",
+  authenticateToken,
+  requirePerfil("ADMINISTRADOR", "SUPER ADMIN"),
+  createCategoria,
+);
+
+router.patch(
+  "/categoria/:id",
+  authenticateToken,
+  requirePerfil("ADMINISTRADOR", "SUPER ADMIN"),
+  updateCategory,
 );
 
 export default router;
