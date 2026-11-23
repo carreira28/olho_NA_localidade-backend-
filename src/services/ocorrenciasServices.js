@@ -123,7 +123,7 @@ const createProblem = async (data, files, idCidadao) => {
   });
 };
 /*id_cidadao romovido para que o admin e o cidadao possam alterar a localização */
-const setLocation = async (id, data) => {
+const setLocation = async (id, data, user) => {
   const semValor = (v) => v === undefined || v === null || v === "";
   const latitude = semValor(data?.latitude) ? NaN : Number(data.latitude);
   const longitude = semValor(data?.longitude) ? NaN : Number(data.longitude);
@@ -142,18 +142,31 @@ const setLocation = async (id, data) => {
     longitude < -180 ||
     longitude > 180
   ) {
-    const error = new Error("Localização invalida");
+    const error = new Error("Localização inválida");
     error.status = 400;
     throw error;
   }
 
+  const where = { id_problema: id };
+  if (user.tipo === "cidadao") where.id_cidadao = user.id;
+
   const problema = await prisma.problema.findFirst({
-    where: { id_problema: id },
+    where,
+    include: incluirHistorico,
   });
 
   if (!problema) {
     const error = new Error("Ocorrência não encontrada");
     error.status = 404;
+    throw error;
+  }
+
+  const validacao = currentState(problema.historicoEstados, "VALIDACAO");
+  if (validacao?.toUpperCase() !== "PENDENTE") {
+    const error = new Error(
+      "Já não é possível alterar a localização desta ocorrência",
+    );
+    error.status = 409;
     throw error;
   }
 
@@ -180,8 +193,12 @@ const getProblemForManagement = async (id, user) => {
     throw error;
   }
 
+  const eAdmin = ["ADMINISTRADOR", "SUPER ADMIN"].includes(
+    user.perfil?.toUpperCase(),
+  );
+
   const where = { id_problema: id };
-  if (user.perfil?.toUpperCase() !== "ADMINISTRADOR") {
+  if (!eAdmin) {
     where.id_departamento = user.departamento;
   }
 
@@ -211,15 +228,16 @@ const getProblemForManagement = async (id, user) => {
   return problema;
 };
 
-//!não verificado
 const getProblemsForManagement = async (user) => {
-  const eAdmin = user.perfil?.toUpperCase() === "ADMINISTRADOR";
+  const eAdmin = ["ADMINISTRADOR", "SUPER ADMIN"].includes(
+    user.perfil?.toUpperCase(),
+  );
   const where = {};
 
   if (!eAdmin) {
     if (!user.departamento) {
       const error = new Error("Funcionário sem departamento atribuído");
-      error.status = 404;
+      error.status = 403;
       throw error;
     }
     where.id_departamento = user.departamento;
@@ -277,6 +295,14 @@ const validateProblem = async (id, data, idFuncionario) => {
       if (!problema) {
         const error = new Error("Ocorrência não encontrada");
         error.status = 404;
+        throw error;
+      }
+
+      if (problema.latitude === null || problema.longitude === null) {
+        const error = new Error(
+          "Não é possível validar uma ocorrência sem localização",
+        );
+        error.status = 409;
         throw error;
       }
 

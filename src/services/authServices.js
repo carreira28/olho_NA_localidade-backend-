@@ -55,6 +55,7 @@ const signup = async (data) => {
   return { id: cidadao.id_cidadao, nome: cidadao.nome, email: cidadao.email };
 };
 
+//!Verificar depois
 const createEmployee = async (data, idAdmin) => {
   const { nome, email, password, id_departamento, tipoPerfil } = data ?? {};
 

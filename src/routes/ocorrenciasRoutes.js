@@ -49,7 +49,13 @@ router.post(
 router.patch(
   "/problemas/:id/localizacao",
   authenticateToken,
-  apenasCidadaoOuAdmin,
+  apenasCidadao,
+  setLocation,
+);
+router.patch(
+  "/gestao/problemas/:id/localizacao",
+  authenticateToken,
+  requirePerfil("ADMINISTRADOR", "SUPER ADMIN"),
   setLocation,
 );
 
