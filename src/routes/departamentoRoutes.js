@@ -1,6 +1,9 @@
 import { Router } from "express";
 
-import { getAllDepartamentes } from "../controllers/departamentosController.js";
+import {
+  getAllDepartments,
+  createDepartments,
+} from "../controllers/departamentosController.js";
 
 import {
   authenticateToken,
@@ -10,10 +13,17 @@ import {
 const router = Router();
 
 router.get(
-  "/departmantos",
+  "/departamentos",
   authenticateToken,
   requirePerfil("ADMINISTRADOR", "SUPER ADMIN"),
-  getAllDepartamentes,
+  getAllDepartments,
+);
+
+router.post(
+  "/departamento",
+  authenticateToken,
+  requirePerfil("ADMINISTRADOR", "SUPER ADMIN"),
+  createDepartments,
 );
 
 export default router;

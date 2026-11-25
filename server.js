@@ -19,7 +19,7 @@ const PORT = process.env.SERVER_PORT || 3000;
 app.use("/auth", AuthRoutes);
 app.use("/api", OcorrenciasRoutes);
 app.use("/gestaoCategoria", categoriaRoutes);
-app.use("/dwsd", departamentoRoutes);
+app.use("/gestaoDepartamento", departamentoRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
