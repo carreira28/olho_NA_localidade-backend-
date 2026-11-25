@@ -5,6 +5,7 @@ import morgan from "morgan";
 import AuthRoutes from "./src/routes/AuthRoutes.js";
 import OcorrenciasRoutes from "./src/routes/ocorrenciasRoutes.js";
 import categoriaRoutes from "./src/routes/categoriaRoutes.js";
+import departamentoRoutes from "./src/routes/departamentoRoutes.js";
 import { notFound, errorHandler } from "./src/middlewares/errorHandler.js";
 
 const app = express();
@@ -18,6 +19,7 @@ const PORT = process.env.SERVER_PORT || 3000;
 app.use("/auth", AuthRoutes);
 app.use("/api", OcorrenciasRoutes);
 app.use("/gestaoCategoria", categoriaRoutes);
+app.use("/dwsd", departamentoRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
