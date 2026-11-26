@@ -6,6 +6,7 @@ import AuthRoutes from "./src/routes/AuthRoutes.js";
 import OcorrenciasRoutes from "./src/routes/ocorrenciasRoutes.js";
 import categoriaRoutes from "./src/routes/categoriaRoutes.js";
 import departamentoRoutes from "./src/routes/departamentoRoutes.js";
+import utilizadoresRoutes from "./src/routes/utilizadoresRoutes.js";
 import { notFound, errorHandler } from "./src/middlewares/errorHandler.js";
 
 const app = express();
@@ -20,7 +21,7 @@ app.use("/auth", AuthRoutes);
 app.use("/api", OcorrenciasRoutes);
 app.use("/gestaoCategoria", categoriaRoutes);
 app.use("/gestaoDepartamento", departamentoRoutes);
-
+app.use("/gestaoUtilizadores", utilizadoresRoutes);
 app.use(notFound);
 app.use(errorHandler);
 

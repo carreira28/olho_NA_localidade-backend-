@@ -3,6 +3,7 @@ import { Router } from "express";
 import {
   getAllDepartments,
   createDepartments,
+  updateDepartments,
 } from "../controllers/departamentosController.js";
 
 import {
@@ -24,6 +25,13 @@ router.post(
   authenticateToken,
   requirePerfil("ADMINISTRADOR", "SUPER ADMIN"),
   createDepartments,
+);
+
+router.patch(
+  "/departamento/:id",
+  authenticateToken,
+  requirePerfil("ADMINISTRADOR", "SUPER ADMIN"),
+  updateDepartments,
 );
 
 export default router;

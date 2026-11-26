@@ -20,4 +20,16 @@ const createDepartments = async (req, res, next) => {
   }
 };
 
-export { getAllDepartments, createDepartments };
+const updateDepartments = async (req, res, next) => {
+  try {
+    const departamento = await departamentosServices.updateDepartments(
+      Number(req.params.id),
+      req.body,
+    );
+    return res.status(200).json(departamento);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export { getAllDepartments, createDepartments, updateDepartments };
