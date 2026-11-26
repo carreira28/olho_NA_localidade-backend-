@@ -2,7 +2,9 @@ import * as utilizadoresServices from "../services/utilizadoresServices.js";
 
 const getAllAccounts = async (req, res, next) => {
   try {
-    const getAllAccounts = await utilizadoresServices.getAllAccounts();
+    const contas = await utilizadoresServices.getAllAccounts();
+
+    return res.status(200).json(contas);
   } catch (err) {
     next(err);
   }
@@ -10,9 +12,11 @@ const getAllAccounts = async (req, res, next) => {
 
 const getEmployeeHistory = async (req, res, next) => {
   try {
-    const getEmployeeHistory = await utilizadoresServices.getEmployeeHistory(
+    const historico = await utilizadoresServices.getEmployeeHistory(
       Number(req.params.id),
     );
+
+    return res.status(200).json(historico);
   } catch (err) {
     next(err);
   }
@@ -20,9 +24,11 @@ const getEmployeeHistory = async (req, res, next) => {
 
 const getCitizenHistory = async (req, res, next) => {
   try {
-    const getCitizenHistory = await utilizadoresServices.getCitizenHistory(
+    const historico = await utilizadoresServices.getCitizenHistory(
       Number(req.params.id),
     );
+
+    return res.status(200).json(historico);
   } catch (err) {
     next(err);
   }

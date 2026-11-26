@@ -20,13 +20,13 @@ router.get(
   getAllAccounts,
 );
 router.get(
-  "/utilizadore/funcionario/historico:id",
+  "/utilizadore/funcionario/historico/:id",
   authenticateToken,
   requirePerfil("ADMINISTRADOR", "SUPER ADMIN"),
   getEmployeeHistory,
 );
 router.get(
-  "/utilizadore/cidadao/historico:id",
+  "/utilizadore/cidadao/historico/:id",
   authenticateToken,
   requirePerfil("ADMINISTRADOR", "SUPER ADMIN"),
   getCitizenHistory,
