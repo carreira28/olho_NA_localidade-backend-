@@ -61,4 +61,28 @@ const getEmployeeHistory = async (id) => {
   });
 };
 
+const UpdateUserAccount = async (id, tipo, data, idAdmin) => {
+  const { nome, email } = data;
+  const id_departamento = Number(data?.id_departamento);
+  const id_estado_conta = Number(data?.id_estado_conta);
+
+  if (!Number.isInteger(id)) {
+    const error = new Error("Identificador inválido");
+    error.status = 400;
+    throw error;
+  }
+
+  if (!nome || !email || !Number.isInteger(id_estado_conta)) {
+    const error = new Error("Indica o nome, o email e o estado da conta");
+    error.status = 400;
+    throw error;
+  }
+
+  if (!Number.isInteger(id)) {
+    const error = new Error("Identificador inválido");
+    error.status = 400;
+    throw error;
+  }
+};
+
 export { getAllAccounts, getEmployeeHistory, getCitizenHistory };
